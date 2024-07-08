@@ -9,7 +9,7 @@ import com.example.demo.model.RefreshToken;
 
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Integer> {
    
-    boolean existByRefreshToken(String refreshToken);
+    boolean existsByRefreshToken(String refreshToken);
 
     Optional<RefreshToken> findByRefreshToken(String refreshToken);
 
