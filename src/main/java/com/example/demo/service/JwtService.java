@@ -81,7 +81,7 @@ public class JwtService {
         }
     }
 
-    public String generateRefreshToken(String username) {
+    public String generateRefreshToken() {
         try{
             Date currentDt = new Date();
             Date expirationDT = DateUtils.addDays(currentDt, 1);
@@ -89,7 +89,6 @@ public class JwtService {
             return Jwts.builder()
             .id(UUID.randomUUID().toString())
             .issuer(ISSUER)
-            .subject(username)
             .issuedAt(currentDt)
             .expiration(expirationDT)
             .signWith(getSecretKey())

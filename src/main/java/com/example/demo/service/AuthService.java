@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import com.example.demo.exception.BadRequestException;
 import com.example.demo.exception.NotFoundException;
 import com.example.demo.exception.UnauthorizedException;
+import com.example.demo.model.RefreshToken;
 import com.example.demo.model.User;
+import com.example.demo.repository.RefreshTokenRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.resBody.AuthResBody.LoginResBody;
 import com.example.demo.resBody.AuthResBody.RefreshTokenResBody;
@@ -21,6 +23,9 @@ public class AuthService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired 
+    private RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
     private JwtService jwtService;
@@ -42,7 +47,11 @@ public class AuthService {
         //generate access token & access token
 
         String accessToken = jwtService.generateAccessToken(user.getUsername());
-        String refreshToken = jwtService.generateRefreshToken(user.getUsername());
+        String refreshToken = jwtService.generateRefreshToken();
+
+        //save refresh token in db
+        RefreshToken token = new RefreshToken(user, refreshToken);
+        refreshTokenRepository.save(token);
     
         RegisterResBody resBody = new RegisterResBody(accessToken, refreshToken);
         return resBody;
@@ -57,7 +66,11 @@ public class AuthService {
         }
 
         String accessToken = jwtService.generateAccessToken(user.getUsername());
-        String refreshToken = jwtService.generateRefreshToken(user.getUsername());
+        String refreshToken = jwtService.generateRefreshToken();
+
+        //save refresh token in db
+        RefreshToken token = new RefreshToken(user, refreshToken);
+        refreshTokenRepository.save(token);
 
         LoginResBody resBody = new LoginResBody(accessToken, refreshToken);
         return resBody;
@@ -65,16 +78,13 @@ public class AuthService {
     }
 
     public RefreshTokenResBody refreshToken(String refreshToken){
-        String username = jwtService.getUsernameFromToken(refreshToken).orElseThrow(()->new BadRequestException("invalid refresh token"));
+        RefreshToken token = refreshTokenRepository.findByRefreshToken(refreshToken).orElseThrow(()-> new NotFoundException("refresh token not found"));
+        
+        String accessToken = jwtService.generateAccessToken(token.getUser().getUsername());
 
-        String accessToken = jwtService.generateAccessToken(username);
-        String newRefreshToken = jwtService.generateRefreshToken(username);
-
-        RefreshTokenResBody resBody = new RefreshTokenResBody(accessToken, newRefreshToken);
+        RefreshTokenResBody resBody = new RefreshTokenResBody(accessToken);
         return resBody;
-
-
-
     } 
+    
 
 }
